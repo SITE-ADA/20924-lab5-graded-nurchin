@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+//import org.springframework.format.annotation.DateTimeFormat;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -123,12 +124,28 @@ public class EventServiceImpl implements EventService {
 // getEventsByDateRange
     @Override
     public List<Event> getEventsByDateRange(LocalDateTime start, LocalDateTime end) {
-        return List.of();
+        if(start==null || end==null) {
+            return List.of();
+        }
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getEventDateTime().isAfter(start) && e.getEventDateTime().isBefore(end))
+                .collect(Collectors.toList());
     }
 
+
+    //updateEventPrice
     @Override
     public Event updateEventPrice(UUID id, BigDecimal newPrice) {
-        return null;
+
+        if(id==null || newPrice==null) {
+            return null;
+        }
+        Event event = eventRepository.findById(id).orElse(null);
+        if(event==null) {
+            return null;
+        }
+        event.setTicketPrice(newPrice);
+        return eventRepository.save(event);
     }
 
 
