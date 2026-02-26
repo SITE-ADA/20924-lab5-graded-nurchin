@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+//import org.springframework.format.annotation.DateTimeFormat;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -83,29 +84,70 @@ public class EventServiceImpl implements EventService {
     }
 
     // Custom methods
+
+    //getEventsByTag
     @Override
     public List<Event> getEventsByTag(String tag) {
-        return List.of();
+        if(tag==null || tag.trim().isEmpty()) {
+            return List.of();
+        }
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getTags() != null && e.getTags().contains(tag))
+                .collect(Collectors.toList());
     }
 
+    //getUpcomingEvents
     @Override
     public List<Event> getUpcomingEvents() {
-        return List.of();
+        LocalDateTime now = LocalDateTime.now();
+
+        return eventRepository.findAll().stream()
+                .filter(e -> e != null && e.getEventDateTime() != null)
+                .filter(e -> e.getEventDateTime().isAfter(now))
+                .collect(Collectors.toList());
     }
 
+
+    //getEventsByPriceRange
     @Override
     public List<Event> getEventsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
-       return List.of();
+        if(minPrice==null || maxPrice==null) {
+            return List.of();
+        }
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getTicketPrice() != null)
+                .filter(e -> e.getTicketPrice().compareTo(minPrice) >= 0 && e.getTicketPrice().compareTo(maxPrice) <= 0)
+                .collect(Collectors.toList());
     }
 
+    // getEventsByDateRange
     @Override
     public List<Event> getEventsByDateRange(LocalDateTime start, LocalDateTime end) {
-        return List.of();
+        if(start==null || end==null) {
+            return List.of();
+        }
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getEventDateTime() != null)
+                .filter(e -> !e.getEventDateTime().isBefore(start) && !e.getEventDateTime().isAfter(end))
+                .collect(Collectors.toList());
     }
 
+    //updateEventPrice
     @Override
     public Event updateEventPrice(UUID id, BigDecimal newPrice) {
-        return null;
+        if(newPrice==null || newPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Invalid price");
+        }
+
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + id));
+
+        event.setTicketPrice(newPrice);
+        return eventRepository.save(event);
     }
+
+
+
+
 
 }
