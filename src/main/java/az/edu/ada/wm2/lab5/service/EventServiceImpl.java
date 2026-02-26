@@ -115,39 +115,36 @@ public class EventServiceImpl implements EventService {
             return List.of();
         }
         return eventRepository.findAll().stream()
+                .filter(e -> e.getTicketPrice() != null)
                 .filter(e -> e.getTicketPrice().compareTo(minPrice) >= 0 && e.getTicketPrice().compareTo(maxPrice) <= 0)
                 .collect(Collectors.toList());
     }
 
-
-
-// getEventsByDateRange
+    // getEventsByDateRange
     @Override
     public List<Event> getEventsByDateRange(LocalDateTime start, LocalDateTime end) {
         if(start==null || end==null) {
             return List.of();
         }
         return eventRepository.findAll().stream()
-                .filter(e -> e.getEventDateTime().isAfter(start) && e.getEventDateTime().isBefore(end))
+                .filter(e -> e.getEventDateTime() != null)
+                .filter(e -> !e.getEventDateTime().isBefore(start) && !e.getEventDateTime().isAfter(end))
                 .collect(Collectors.toList());
     }
-
 
     //updateEventPrice
     @Override
     public Event updateEventPrice(UUID id, BigDecimal newPrice) {
+        if(newPrice==null || newPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Invalid price");
+        }
 
-        if(id==null || newPrice==null) {
-            return null;
-        }
-        Event event = eventRepository.findById(id).orElse(null);
-        if(event==null) {
-            return null;
-        }
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + id));
+
         event.setTicketPrice(newPrice);
         return eventRepository.save(event);
     }
-
 
 
 
