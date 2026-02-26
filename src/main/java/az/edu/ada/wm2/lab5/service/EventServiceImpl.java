@@ -83,15 +83,18 @@ public class EventServiceImpl implements EventService {
     }
 
     // Custom methods
+
+    //getEventsByTag
     @Override
     public List<Event> getEventsByTag(String tag) {
-        return List.of();
+        if(tag==null || tag.trim().isEmpty()) {
+            return List.of();
+        }
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getTags() != null && e.getTags().contains(tag))
+                .collect(Collectors.toList());
     }
 
-    @Override
-    public List<Event> getUpcomingEvents() {
-        return List.of();
-    }
 
     @Override
     public List<Event> getEventsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
@@ -107,5 +110,10 @@ public class EventServiceImpl implements EventService {
     public Event updateEventPrice(UUID id, BigDecimal newPrice) {
         return null;
     }
+
+
+
+
+
 
 }
